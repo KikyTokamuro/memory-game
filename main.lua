@@ -12,6 +12,8 @@ function Card:new(name, x, y, width, height)
    card.height = height
    card.isOpened = false
    card.isSolved = false
+   card.openedTime = 0
+   card.openDuration = 2
         
    return card
 end
@@ -22,6 +24,13 @@ function Card:inside(x, y)
       and x < self.x + self.width
       and y >= self.y
       and y < self.y + self.height
+end
+
+-- Autoclose by duration
+function Card:autoclose(currentTime)
+   if self.openedTime + self.openDuration < currentTime then
+      self.isOpened = false
+   end
 end
 
 Deck = {}
@@ -39,6 +48,26 @@ end
 -- Add card to deck
 function Deck:add(card)
    table.insert(self.items, card)
+end
+
+-- Count of opened cards
+function Deck:openedCount()
+   local count = 0
+   
+   for i=1, #deck.items do
+      if deck.items[i].isOpened then
+         count = count + 1
+      end
+   end
+
+   return count
+end
+
+-- Close all cards
+function Deck:closeAll()
+   for i=1, #deck.items do
+      deck.items[i].isOpened = false
+   end
 end
 
 function love.load()
@@ -74,9 +103,9 @@ function love.load()
       -- Generate name
       local name = ""
       if i % 2 == 0 then
-	 name = tostring(i-1)
+         name = tostring(i-1)
       else
-	 name = tostring(i)
+         name = tostring(i)
       end
 
       -- Add new card to deck
@@ -93,62 +122,88 @@ function love.draw()
       local d = deck.items[i]
 
       if d.isSolved then
-	 -- Draw card
-	 love.graphics.setColor(255, 255, 255)
-	 love.graphics.rectangle('fill', d.x, d.y, d.width, d.height)
+         -- Draw card
+         love.graphics.setColor(255, 255, 255)
+         love.graphics.rectangle('fill', d.x, d.y, d.width, d.height)
       else
-	 -- Draw card
-	 love.graphics.setColor(0, 0, 0)
-	 love.graphics.rectangle('line', d.x, d.y, d.width, d.height)
+         -- Draw card
+         love.graphics.setColor(0, 0, 0)
+         love.graphics.rectangle('line', d.x, d.y, d.width, d.height)
 
-	 -- Params for card text
-	 local limit = 60
-	 local x = (d.x + d.width / 2) - limit / 2
-	 local y = (d.y + d.height / 2) - limit / 4
+         -- Params for card text
+         local limit = 60
+         local x = (d.x + d.width / 2) - limit / 2
+         local y = (d.y + d.height / 2) - limit / 4
 
-	 local cardText = (d.isOpened and d.name or "#")
+         local cardText = (d.isOpened and d.name or "#")
 
-	 -- Draw card text
-	 love.graphics.setFont(love.graphics.newFont(limit / 2))
-	 love.graphics.setColor(0, 0, 0)
-	 love.graphics.printf(cardText, x, y, limit, "center")
+         -- Draw card text
+         love.graphics.setFont(love.graphics.newFont(limit / 2))
+         love.graphics.setColor(0, 0, 0)
+         love.graphics.printf(cardText, x, y, limit, "center")
       end
-      
    end
 end
 
 function love.update(dt)
-   
+   local firstCard = nil
+   local secondCard = nil
+
+   -- Search opened cards
+   for i=1, #deck.items do
+      local c = deck.items[i]
+
+      if c.isOpened and not c.isSolved and firstCard == nil then
+         firstCard = c
+         goto continue
+      end
+
+      if c.isOpened and not c.isSolved and secondCard == nil then
+         secondCard = c
+      end
+      ::continue::
+   end
+
+   -- Update card status
+   if firstCard ~= nil and secondCard ~= nil then
+      if (firstCard.name == secondCard.name) then
+         firstCard.isSolved = true
+         secondCard.isSolved = true
+      else
+         firstCard:autoclose(love.timer.getTime())
+         secondCard:autoclose(love.timer.getTime())
+      end
+
+      return
+   end
+
+   -- Autoclose
+   if firstCard ~= nil then
+      firstCard:autoclose(love.timer.getTime())
+   end
+
+   -- Autoclose
+   if secondCard ~= nil then
+      secondCard:autoclose(love.timer.getTime())
+   end
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
    -- Left button pressed
    if button == 1 then
-      -- Iterate over cards
-      for i=1, #deck.items do
-	 local d = deck.items[i]
+      if deck:openedCount() >= 2 then
+         deck:closeAll()
+      else
+         -- Iterate over cards
+         for i=1, #deck.items do
+            local c = deck.items[i]
 
-	 -- Search card by coords
-	 if d:inside(x, y) then
-	    d.isOpened = true
-
-	    -- Search another opened card
-	    for j=1, #deck.items do
-	       local ad = deck.items[j]
-	       
-	       if i ~= j and ad.isOpened then
-		  if (ad.name == d.name) then
-		     d.isSolved = true
-		     ad.isSolved = true
-		     
-		     return
-		  else
-		     ad.isOpened = false
-		     d.isOpened = false
-		  end
-	       end
-	    end
-	 end
+            -- Search card by coords
+            if c:inside(x, y) then
+               c.isOpened = true
+               c.openedTime = love.timer.getTime()
+            end
+         end
       end
    end
 end

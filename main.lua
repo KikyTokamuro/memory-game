@@ -1,74 +1,5 @@
-Card = {}
-
--- Card constructor
-function Card:new(name, x, y, width, height)
-   local card = {}
-   setmetatable(card, { __index = self })
-   
-   card.name = name
-   card.x = x
-   card.y = y
-   card.width = width
-   card.height = height
-   card.isOpened = false
-   card.isSolved = false
-   card.openedTime = 0
-   card.openDuration = 2
-        
-   return card
-end
-
--- Check inside in card
-function Card:inside(x, y)
-   return x >= self.x 
-      and x < self.x + self.width
-      and y >= self.y
-      and y < self.y + self.height
-end
-
--- Autoclose by duration
-function Card:autoclose(currentTime)
-   if self.openedTime + self.openDuration < currentTime then
-      self.isOpened = false
-   end
-end
-
-Deck = {}
-
--- Deck constructor
-function Deck:new()
-   local deck = {}
-   setmetatable(deck, { __index = self })
-   
-   deck.items = {}
-   
-   return deck
-end
-
--- Add card to deck
-function Deck:add(card)
-   table.insert(self.items, card)
-end
-
--- Count of opened cards
-function Deck:openedCount()
-   local count = 0
-   
-   for i=1, #deck.items do
-      if deck.items[i].isOpened then
-         count = count + 1
-      end
-   end
-
-   return count
-end
-
--- Close all cards
-function Deck:closeAll()
-   for i=1, #deck.items do
-      deck.items[i].isOpened = false
-   end
-end
+Card = require("card")
+Deck = require("deck") 
 
 function love.load()
    deck = Deck:new()
@@ -112,29 +43,29 @@ function love.load()
       deck:add(Card:new(name, x, y, adjustedCardWidth, adjustedCardHeight))
    end
 
+   -- Suffle added cards
+   deck:shuffle()
+
    -- Draw background
    love.graphics.setBackgroundColor(255, 255, 255, 1)
 end
 
 function love.draw()
+   love.graphics.discard()
+
    -- Iterate over cards
-   for i=1, #deck.items do
+   for i = 1, #deck.items do
       local d = deck.items[i]
 
-      if d.isSolved then
-         -- Draw card
-         love.graphics.setColor(255, 255, 255)
-         love.graphics.rectangle('fill', d.x, d.y, d.width, d.height)
-      else
+      if not d.isSolved then
          -- Draw card
          love.graphics.setColor(0, 0, 0)
-         love.graphics.rectangle('line', d.x, d.y, d.width, d.height)
+         love.graphics.rectangle('line', d.x, d.y, d.width, d.height, 10, 10)
 
          -- Params for card text
          local limit = 60
          local x = (d.x + d.width / 2) - limit / 2
          local y = (d.y + d.height / 2) - limit / 4
-
          local cardText = (d.isOpened and d.name or "#")
 
          -- Draw card text
@@ -150,7 +81,7 @@ function love.update(dt)
    local secondCard = nil
 
    -- Search opened cards
-   for i=1, #deck.items do
+   for i = 1, #deck.items do
       local c = deck.items[i]
 
       if c.isOpened and not c.isSolved and firstCard == nil then
@@ -195,11 +126,11 @@ function love.mousepressed(x, y, button, istouch, presses)
          deck:closeAll()
       else
          -- Iterate over cards
-         for i=1, #deck.items do
+         for i = 1, #deck.items do
             local c = deck.items[i]
 
             -- Search card by coords
-            if c:inside(x, y) then
+            if not c.isSolved and c:inside(x, y) then
                c.isOpened = true
                c.openedTime = love.timer.getTime()
             end

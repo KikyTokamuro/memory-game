@@ -52,4 +52,39 @@ function Deck:shuffle()
 	end
 end
 
+-- Fill deck
+function Deck:fill(windowWidth, windowHeight, cardWidth, cardHeight, gridSize, spacing)
+   -- Calculate the number of columns and rows that can fit in the window
+   local cols = math.floor((windowWidth - spacing) / (cardWidth + spacing))
+   local rows = math.floor((windowHeight - spacing) / (cardHeight + spacing))
+
+   -- Adjust the card size and spacing to fit the window
+   local adjustedCardWidth = (windowWidth - spacing * (cols + 1)) / cols
+   local adjustedCardHeight = (windowHeight - spacing * (rows + 1)) / rows
+   local adjustedSpacing = (windowWidth - cols * adjustedCardWidth) / (cols + 1)
+
+   -- Calculate the x and y offsets to center the grid
+   local xOffset = (windowWidth - cols * (adjustedCardWidth + adjustedSpacing)) 
+   local yOffset = (windowHeight - rows * (adjustedCardHeight + adjustedSpacing)) 
+
+   -- Layout the cards in a grid
+   for i = 1, gridSize do
+      local col = (i - 1) % cols
+      local row = math.floor((i - 1) / cols)
+      local x = col * (adjustedCardWidth + adjustedSpacing) + xOffset
+      local y = row * (adjustedCardHeight + adjustedSpacing) + yOffset
+
+      -- Generate name
+      local name = ""
+      if i % 2 == 0 then
+         name = tostring(i-1)
+      else
+         name = tostring(i)
+      end
+
+      -- Add new card to deck
+      self:add(Card:new(name, x, y, adjustedCardWidth, adjustedCardHeight))
+   end
+end
+
 return Deck

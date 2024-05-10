@@ -15,12 +15,35 @@ function Deck:add(card)
    table.insert(self.items, card)
 end
 
+-- Get card by id
+function Deck:get(idx)
+   return self.items[idx]
+end
+
+-- Count of cards
+function Deck:count()
+   return #self.items
+end
+
 -- Count of opened cards
 function Deck:openedCount()
    local count = 0
    
-   for i = 1, #self.items do
-      if self.items[i].isOpened then
+   for i = 1, self:count() do
+      if self:get(i).isOpened then
+         count = count + 1
+      end
+   end
+
+   return count
+end
+
+-- Count of solved cards
+function Deck:solvedCount()
+   local count = 0
+   
+   for i = 1, self:count() do
+      if self:get(i).isSolved then
          count = count + 1
       end
    end
@@ -30,8 +53,8 @@ end
 
 -- Close all cards
 function Deck:closeAll()
-   for i = 1, #self.items do
-      self.items[i].isOpened = false
+   for i = 1, self:count() do
+      self:get(i).isOpened = false
    end
 end
 
@@ -41,14 +64,14 @@ function Deck:shuffle()
    local seed = os.time() + math.random(1000000)
    math.randomseed(seed)
 
-   for i = #self.items, 2, -1 do
+   for i = self:count(), 2, -1 do
 		local j = math.random(i)
 		
 		-- Swap x
-		self.items[i].x, self.items[j].x = self.items[j].x, self.items[i].x
+		self:get(i).x, self:get(j).x = self:get(j).x, self:get(i).x
 
 		-- Swap y
-		self.items[i].y, self.items[j].y = self.items[j].y, self.items[i].y
+		self:get(i).y, self:get(j).y = self:get(j).y, self:get(i).y
 	end
 end
 

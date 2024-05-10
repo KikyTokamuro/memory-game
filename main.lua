@@ -2,6 +2,8 @@ Card = require("card")
 Deck = require("deck") 
 
 function love.load()
+   winned = false
+
    -- Set title
    love.window.setTitle("MemoryGame")
 
@@ -23,8 +25,8 @@ function love.load()
    deck:shuffle()
 
    -- Get cards size for own sprites
-   adjustedCardWidth = deck.items[1].width
-   adjustedCardHeight = deck.items[1].height 
+   adjustedCardWidth = deck:get(1).width
+   adjustedCardHeight = deck:get(1).height 
 
    -- Load background sprite
    backgroundQuad = love.graphics.newQuad(0, 0, windowWidth, windowHeight, 400, 400)
@@ -43,9 +45,15 @@ function love.draw()
    love.graphics.setColor(255,255,255,255)
    love.graphics.draw(backgroundImage, backgroundQuad, 0, 0)
 
+   -- Check winned
+   if winned then
+      showWinnedScreen()
+      return
+   end
+
    -- Iterate over cards
-   for i = 1, #deck.items do
-      local d = deck.items[i]
+   for i = 1, deck:count() do
+      local d = deck:get(i)
 
       love.graphics.setColor(255,255,255,255)
 
@@ -72,12 +80,18 @@ function love.draw()
 end
 
 function love.update(dt)
+   -- Check count of openned cards
+   if deck:solvedCount() == deck:count() then
+      winned = true
+      return
+   end
+
    local firstCard = nil
    local secondCard = nil
 
    -- Search opened cards
-   for i = 1, #deck.items do
-      local c = deck.items[i]
+   for i = 1, deck:count() do
+      local c = deck:get(i)
 
       if c.isOpened and not c.isSolved and firstCard == nil then
          firstCard = c
@@ -121,8 +135,8 @@ function love.mousepressed(x, y, button, istouch, presses)
          deck:closeAll()
       else
          -- Iterate over cards
-         for i = 1, #deck.items do
-            local c = deck.items[i]
+         for i = 1, deck:count() do
+            local c = deck:get(i)
 
             -- Search card by coords
             if not c.isSolved and c:inside(x, y) then
@@ -132,4 +146,14 @@ function love.mousepressed(x, y, button, istouch, presses)
          end
       end
    end
+end
+
+-- Show winned screen
+function showWinnedScreen()
+   local windowWidth = love.graphics.getWidth()
+   local windowHeight = love.graphics.getHeight()
+
+   love.graphics.setFont(love.graphics.newFont(80))
+   love.graphics.setColor(255, 255, 255)
+   love.graphics.printf("You Win!", windowWidth / 4, windowHeight / 2.5, 400, "center")
 end

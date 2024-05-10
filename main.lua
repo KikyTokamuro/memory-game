@@ -148,6 +148,13 @@ function love.mousepressed(x, y, button, istouch, presses)
    end
 end
 
+function love.keypressed(key, scancode, isrepeat)
+   -- Restart
+   if key == "r" then
+      love.load()
+   end
+end
+
 -- Show winned screen
 function showWinnedScreen()
    local windowWidth = love.graphics.getWidth()

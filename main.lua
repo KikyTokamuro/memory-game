@@ -1,6 +1,11 @@
 Card = require("card")
 Deck = require("deck") 
 
+local VERSION = '0.0.1'
+
+local windowWidth = love.graphics.getWidth()
+local windowHeight = love.graphics.getHeight()
+
 function love.load()
    winned = false
 
@@ -11,8 +16,6 @@ function love.load()
    deck = Deck:new()
 
    -- Deck params
-   local windowWidth = love.graphics.getWidth()
-   local windowHeight = love.graphics.getHeight()
    local cardWidth = 90
    local cardHeight = 120
    local gridSize = 28
@@ -30,14 +33,14 @@ function love.load()
 
    -- Load background sprite
    backgroundQuad = love.graphics.newQuad(0, 0, windowWidth, windowHeight, 400, 400)
-	backgroundImage = love.graphics.newImage('sprites/back.png')
-	backgroundImage:setWrap('repeat','repeat')
+   backgroundImage = love.graphics.newImage('sprites/back.png')
+   backgroundImage:setWrap('repeat','repeat')
 
-	-- Load cards sprites
-	cardBackImage = love.graphics.newImage('sprites/cardback.png')
-	cardBackQuad = love.graphics.newQuad(0, 0, adjustedCardWidth, adjustedCardHeight, adjustedCardWidth, adjustedCardHeight)
-	cardFrontImage = love.graphics.newImage('sprites/cardfront.png')
-	cardFrontQuad = love.graphics.newQuad(0, 0, adjustedCardWidth, adjustedCardHeight, adjustedCardWidth, adjustedCardHeight)
+   -- Load cards sprites
+   cardBackImage = love.graphics.newImage('sprites/cardback.png')
+   cardBackQuad = love.graphics.newQuad(0, 0, adjustedCardWidth, adjustedCardHeight, adjustedCardWidth, adjustedCardHeight)
+   cardFrontImage = love.graphics.newImage('sprites/cardfront.png')
+   cardFrontQuad = love.graphics.newQuad(0, 0, adjustedCardWidth, adjustedCardHeight, adjustedCardWidth, adjustedCardHeight)
 end
 
 function love.draw()
@@ -77,6 +80,11 @@ function love.draw()
          end
       end
    end
+
+   -- Draw version
+   love.graphics.setFont(love.graphics.newFont(11))
+   love.graphics.setColor(255, 255, 255)
+   love.graphics.print('v'..VERSION, windowWidth-40, windowHeight-15)
 end
 
 function love.update(dt)
@@ -157,9 +165,6 @@ end
 
 -- Show winned screen
 function showWinnedScreen()
-   local windowWidth = love.graphics.getWidth()
-   local windowHeight = love.graphics.getHeight()
-
    love.graphics.setFont(love.graphics.newFont(80))
    love.graphics.setColor(255, 255, 255)
    love.graphics.printf("You Win!", windowWidth / 4, windowHeight / 2.5, 400, "center")

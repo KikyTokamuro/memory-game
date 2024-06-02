@@ -9,8 +9,12 @@ local windowHeight = love.graphics.getHeight()
 function love.load()
    winned = false
 
+   -- Game timer
+   startTime = 0
+   gameTimer = 0
+   
    -- Set title
-   love.window.setTitle("MemoryGame")
+   love.window.setTitle('MemoryGame')
 
    -- Create new deck
    deck = Deck:new()
@@ -74,7 +78,7 @@ function love.draw()
             -- Draw card text
             love.graphics.setFont(love.graphics.newFont(limit / 2))
             love.graphics.setColor(255, 0, 0)
-            love.graphics.printf(cardText, x, y, limit, "center")
+            love.graphics.printf(cardText, x, y, limit, 'center')
          else
             love.graphics.draw(cardBackImage, cardBackQuad, d.x, d.y)
          end
@@ -85,6 +89,12 @@ function love.draw()
    love.graphics.setFont(love.graphics.newFont(11))
    love.graphics.setColor(255, 255, 255)
    love.graphics.print('v'..VERSION, windowWidth-40, windowHeight-15)
+
+   -- Draw game timer
+   if startTime > 0 and not winned then
+      gameTimer = love.timer.getTime() - startTime
+   end
+   love.graphics.print(string.format('%.2f', gameTimer), 0, 0)
 end
 
 function love.update(dt)
@@ -150,6 +160,11 @@ function love.mousepressed(x, y, button, istouch, presses)
             if not c.isSolved and c:inside(x, y) then
                c.isOpened = true
                c.openedTime = love.timer.getTime()
+
+	       -- First set game timer
+	       if startTime == 0 then
+		  startTime = love.timer.getTime()
+	       end
             end
          end
       end
@@ -165,7 +180,7 @@ end
 
 -- Show winned screen
 function showWinnedScreen()
-   love.graphics.setFont(love.graphics.newFont(80))
+   love.graphics.setFont(love.graphics.newFont(60))
    love.graphics.setColor(255, 255, 255)
-   love.graphics.printf("You Win!", windowWidth / 4, windowHeight / 2.5, 400, "center")
+   love.graphics.printf(string.format('You Win \nin\n%.2f sec!', gameTimer), windowWidth / 5.5, windowHeight / 3.5, 500, 'center')
 end
